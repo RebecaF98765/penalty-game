@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <title>Penalty Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <h1>Penalty Game</h1>
+
+    <!-- Camp de futbol -->
+    <section class="pitch" aria-label="Camp de futbol">
+      <div class="goal goal-left">
+        <div class="keeper" id="keeper1" aria-label="Porter jugador 1"></div>
+      </div>
+
+      <div class="center-circle"></div>
+
+      <div class="goal goal-right">
+        <div class="keeper" id="keeper2" aria-label="Porter jugador 2"></div>
+      </div>
+
+      <div class="player" id="player1" aria-label="Jugador 1"></div>
+      <div class="player player-right" id="player2" aria-label="Jugador 2"></div>
+    </section>
+
+    <!-- Botons principals (a baix) -->
+    <section class="controls">
+      <button id="btnCreate">Crear partida</button>
+      <button id="btnJoin">Unir-me a partida</button>
+      <button id="btnPlay" disabled>Fer tirada</button>
+    </section>
+
+    <!-- Info de partida -->
+    <section class="status">
+      <p id="statusText">Cap partida iniciada.</p>
+      <p id="gameInfo"></p>
+    </section>
+  </main>
+
+  <!-- Finestra flotant / modal -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle"></h2>
+      <div id="modalBody"></div>
+      <button id="modalClose">Tancar</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

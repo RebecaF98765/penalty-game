@@ -24,7 +24,15 @@ const modalTitle = document.getElementById("modalTitle");
 const modalBody = document.getElementById("modalBody");
 const modalClose = document.getElementById("modalClose");
 
-// Helpers modal
+// --- Overlay per imatges ---
+const imageOverlay = document.createElement("div");
+imageOverlay.id = "imageOverlay";
+imageOverlay.style.position = "absolute";
+imageOverlay.style.inset = "0";
+imageOverlay.style.pointerEvents = "none";
+goalBox.appendChild(imageOverlay);
+
+// Modal helpers
 function openModal(title, innerHtml) {
     modalTitle.textContent = title;
     modalBody.innerHTML = innerHtml;
@@ -35,22 +43,17 @@ function closeModal() {
     modalOverlay.classList.add("hidden");
 }
 
-modalClose.addEventListener("click", () => {
-    closeModal();
-});
+modalClose.addEventListener("click", () => closeModal());
 
 // Crear partida
 btnCreate.addEventListener("click", async () => {
     try {
         const res = await fetch(`${API_BASE}/create`, { method: "POST" });
         const data = await res.json();
-
         gameId = data.gameId;
-
         statusText.textContent = "Partida creada. Ara uneix-te a la partida.";
         gameInfo.textContent = `Codi de partida: ${gameId}`;
-
-        btnPlay.disabled = true; // Encara no pot jugar fins unir-se
+        btnPlay.disabled = true;
     } catch (err) {
         console.error(err);
         alert("Error creant partida");
@@ -81,7 +84,6 @@ btnJoin.addEventListener("click", () => {
             });
 
             const data = await res.json();
-
             if (!res.ok) {
                 alert(data.error || "Error unint-se a la partida");
                 return;
@@ -100,7 +102,7 @@ btnJoin.addEventListener("click", () => {
     });
 });
 
-// Abrir el selector inline (modo: primero shoot, luego defend)
+// Obrir selector inline
 btnPlay.addEventListener("click", () => {
     if (!gameId || !playerId) {
         alert("Primer has de crear o unir-te a una partida.");
@@ -109,9 +111,7 @@ btnPlay.addEventListener("click", () => {
     openInlinePlay();
 });
 
-closeInlinePlay.addEventListener("click", () => {
-    closeInlinePlayMode();
-});
+closeInlinePlay.addEventListener("click", () => closeInlinePlayMode());
 
 function openInlinePlay() {
     inlinePlay.classList.remove("hidden");
@@ -126,12 +126,26 @@ function closeInlinePlayMode() {
     inlinePlay.classList.add("hidden");
     inlinePlay.classList.remove("visible");
     inlinePlay.setAttribute("aria-hidden", "true");
-    goalBox.innerHTML = "";
+    goalBox.querySelectorAll(".goal-zone")?.forEach(z => z.remove());
+    imageOverlay.innerHTML = ""; // neteja imatges
 }
 
-// Renderiza las 9 zonas dentro de goalBox
+// Funció per afegir imatge amb offset
+function addImageToOverlay(src, x, y, offsetX = 0, offsetY = 0) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.position = "absolute";
+    img.style.width = "40px";
+    img.style.height = "40px";
+    img.style.left = `${x - 20 + offsetX}px`;
+    img.style.top = `${y - 20 + offsetY}px`;
+    img.style.pointerEvents = "none";
+    imageOverlay.appendChild(img);
+}
+
+// Render zones
 function renderGoalZones(mode, prevShoot) {
-    goalBox.innerHTML = "";
+    goalBox.querySelectorAll(".goal-zone")?.forEach(z => z.remove());
 
     const zones = [
         { cls: "zone-top-left", h: "alta", d: "esquerra" },
@@ -153,34 +167,42 @@ function renderGoalZones(mode, prevShoot) {
         goalBox.appendChild(div);
 
         div.addEventListener("click", async () => {
+            const rect = div.getBoundingClientRect();
+            const parentRect = goalBox.getBoundingClientRect();
+            const x = rect.left - parentRect.left + rect.width / 2;
+            const y = rect.top - parentRect.top + rect.height / 2;
+
             if (mode === "shoot") {
+                addImageToOverlay("img/ball.png", x, y, -20, 0); // pilota
                 const shoot = { height: z.h, direction: z.d };
                 inlineModeLabel.textContent = "Tria la teva parada";
                 renderGoalZones("defend", shoot);
             } else if (mode === "defend") {
+                addImageToOverlay("img/gloves.png", x, y, 20, 0); // guants + offset
                 const defend = { height: z.h, direction: z.d };
                 const shoot = prevShoot;
 
-                try {
-                    await fetch(`${API_BASE}/play`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ gameId, playerId, shoot, defend })
-                    });
-
-                    statusText.textContent = "Jugada enviada. Esperant que el rival també jugui…";
-                    closeInlinePlayMode();
-                    startPollingResult();
-                } catch (err) {
-                    console.error(err);
-                    alert("Error enviant la jugada");
-                }
+                setTimeout(async () => {
+                    try {
+                        await fetch(`${API_BASE}/play`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ gameId, playerId, shoot, defend })
+                        });
+                        statusText.textContent = "Jugada enviada. Esperant que el rival també jugui…";
+                        closeInlinePlayMode();
+                        startPollingResult();
+                    } catch (err) {
+                        console.error(err);
+                        alert("Error enviant la jugada");
+                    }
+                }, 1000);
             }
         });
     });
 }
 
-// Polling per saber resultats
+// Polling
 function startPollingResult() {
     if (pollInterval) clearInterval(pollInterval);
 
@@ -204,13 +226,9 @@ function showResult(result) {
     const { p1, p2, winner } = result;
 
     let textWinner;
-    if (winner === "draw") {
-        textWinner = "Empat! 🟰";
-    } else if (winner === playerId) {
-        textWinner = "Has guanyat! 🏆";
-    } else {
-        textWinner = "Has perdut… 😢";
-    }
+    if (winner === "draw") textWinner = "Empat! 🟰";
+    else if (winner === playerId) textWinner = "Has guanyat! 🏆";
+    else textWinner = "Has perdut… 😢";
 
     openModal(
         "Resultat de la partida",

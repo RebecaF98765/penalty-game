@@ -11,6 +11,13 @@ const btnCreate = document.getElementById("btnCreate");
 const btnJoin = document.getElementById("btnJoin");
 const btnPlay = document.getElementById("btnPlay");
 
+// --- ELEMENTOS NUEVOS ---
+const inlinePlay = document.getElementById("inlinePlay");
+const goalBox = document.getElementById("goalBox");
+const pitchImage = document.getElementById("pitchImage");
+const closeInlinePlay = document.getElementById("closeInlinePlay");
+const inlineModeLabel = document.getElementById("inlineModeLabel");
+
 // Modal
 const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle = document.getElementById("modalTitle");
@@ -49,7 +56,6 @@ btnCreate.addEventListener("click", async () => {
         alert("Error creant partida");
     }
 });
-
 
 // Unir-se a partida
 btnJoin.addEventListener("click", () => {
@@ -94,83 +100,85 @@ btnJoin.addEventListener("click", () => {
     });
 });
 
-// Fer tirada
+// Abrir el selector inline (modo: primero shoot, luego defend)
 btnPlay.addEventListener("click", () => {
     if (!gameId || !playerId) {
         alert("Primer has de crear o unir-te a una partida.");
         return;
     }
-
-    openModal(
-        "Escull la teva tirada",
-        `
-    <form id="playForm">
-      <h3>Xut</h3>
-      <label>Alçada del xut</label>
-      <select id="shootHeight">
-        <option value="baixa">Baixa</option>
-        <option value="mitjana">Mitjana</option>
-        <option value="alta">Alta</option>
-      </select>
-
-      <label>Direcció del xut</label>
-      <select id="shootDir">
-        <option value="esquerra">Esquerra</option>
-        <option value="centre">Centre</option>
-        <option value="dreta">Dreta</option>
-      </select>
-
-      <h3>Parada</h3>
-      <label>Alçada de la parada</label>
-      <select id="defendHeight">
-        <option value="baixa">Baixa</option>
-        <option value="mitjana">Mitjana</option>
-        <option value="alta">Alta</option>
-      </select>
-
-      <label>Direcció de la parada</label>
-      <select id="defendDir">
-        <option value="esquerra">Esquerra</option>
-        <option value="centre">Centre</option>
-        <option value="dreta">Dreta</option>
-      </select>
-
-      <button type="submit">Enviar jugada</button>
-    </form>
-  `
-    );
-
-    const form = document.getElementById("playForm");
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const shoot = {
-            height: document.getElementById("shootHeight").value,
-            direction: document.getElementById("shootDir").value
-        };
-
-        const defend = {
-            height: document.getElementById("defendHeight").value,
-            direction: document.getElementById("defendDir").value
-        };
-
-        try {
-            await fetch(`${API_BASE}/play`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ gameId, playerId, shoot, defend })
-            });
-
-            statusText.textContent = "Jugada enviada. Esperant que el rival també jugui…";
-            closeModal();
-
-            startPollingResult();
-        } catch (err) {
-            console.error(err);
-            alert("Error enviant la jugada");
-        }
-    });
+    openInlinePlay();
 });
+
+closeInlinePlay.addEventListener("click", () => {
+    closeInlinePlayMode();
+});
+
+function openInlinePlay() {
+    inlinePlay.classList.remove("hidden");
+    inlinePlay.classList.add("visible");
+    inlinePlay.setAttribute("aria-hidden", "false");
+
+    inlineModeLabel.textContent = "Tria el teu xut";
+    renderGoalZones("shoot");
+}
+
+function closeInlinePlayMode() {
+    inlinePlay.classList.add("hidden");
+    inlinePlay.classList.remove("visible");
+    inlinePlay.setAttribute("aria-hidden", "true");
+    goalBox.innerHTML = "";
+}
+
+// Renderiza las 9 zonas dentro de goalBox
+function renderGoalZones(mode, prevShoot) {
+    goalBox.innerHTML = "";
+
+    const zones = [
+        { cls: "zone-top-left", h: "alta", d: "esquerra" },
+        { cls: "zone-top-center", h: "alta", d: "centre" },
+        { cls: "zone-top-right", h: "alta", d: "dreta" },
+        { cls: "zone-mid-left", h: "mitjana", d: "esquerra" },
+        { cls: "zone-mid-center", h: "mitjana", d: "centre" },
+        { cls: "zone-mid-right", h: "mitjana", d: "dreta" },
+        { cls: "zone-bot-left", h: "baixa", d: "esquerra" },
+        { cls: "zone-bot-center", h: "baixa", d: "centre" },
+        { cls: "zone-bot-right", h: "baixa", d: "dreta" }
+    ];
+
+    zones.forEach(z => {
+        const div = document.createElement("div");
+        div.className = "goal-zone " + z.cls;
+        div.dataset.h = z.h;
+        div.dataset.d = z.d;
+        goalBox.appendChild(div);
+
+        div.addEventListener("click", async () => {
+            if (mode === "shoot") {
+                const shoot = { height: z.h, direction: z.d };
+                inlineModeLabel.textContent = "Tria la teva parada";
+                renderGoalZones("defend", shoot);
+            } else if (mode === "defend") {
+                const defend = { height: z.h, direction: z.d };
+                const shoot = prevShoot;
+
+                try {
+                    await fetch(`${API_BASE}/play`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ gameId, playerId, shoot, defend })
+                    });
+
+                    statusText.textContent = "Jugada enviada. Esperant que el rival també jugui…";
+                    closeInlinePlayMode();
+                    startPollingResult();
+                } catch (err) {
+                    console.error(err);
+                    alert("Error enviant la jugada");
+                }
+            }
+        });
+    });
+}
 
 // Polling per saber resultats
 function startPollingResult() {

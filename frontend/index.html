@@ -11,8 +11,21 @@
 
     <!-- Camp de futbol -->
     <section class="pitch" aria-label="Camp de futbol">
-      <img src="img/porteria.jpg" alt="Portería de fútbol" class="pitch-image" />
+      <div class="pitch-inner" style="position:relative;">
+        <img src="img/porteria.jpg" alt="Portería de fútbol" class="pitch-image" id="pitchImage" />
+        <!-- Contenedor donde aparecerá la selección inline -->
+        <div id="inlinePlay" class="inline-play hidden" aria-hidden="true">
+          <div class="inline-header">
+            <button id="closeInlinePlay" class="small">Tancar</button>
+            <span id="inlineModeLabel">Tria xut</span>
+          </div>
+
+          <!-- Goal box: aquí se insertarán las 9 zonas -->
+          <div id="goalBox" class="goal-box" role="application" aria-label="Àrea de xut"></div>
+        </div>
+      </div>
     </section>
+
 
     <!-- Botons principals (a baix) -->
     <section class="controls">

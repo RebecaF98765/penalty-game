@@ -9,39 +9,48 @@
   <main class="app">
     <h1>Penalty Game</h1>
 
-    <!-- Camp de futbol -->
-    <section class="pitch" aria-label="Camp de futbol">
-      <div class="pitch-inner" style="position:relative;">
-        <img src="img/porteria.jpg" alt="Portería de fútbol" class="pitch-image" id="pitchImage" />
-        <!-- Contenedor donde aparecerá la selección inline -->
-        <div id="inlinePlay" class="inline-play hidden" aria-hidden="true">
-          <div class="inline-header">
-            <button id="closeInlinePlay" class="small">Tancar</button>
-            <span id="inlineModeLabel">Tria xut</span>
+    <div class="game-layout">
+
+      <section class="controls">
+        <h2>ACCIONS</h2>
+        <button id="btnCreate">Crear partida</button>
+        <button id="btnJoin">Unir-me a partida</button>
+        <button id="btnPlay" disabled>Fer tirada</button>
+        
+        <section class="status">
+          <p id="statusText">Cap partida iniciada.</p>
+          <p id="gameInfo"></p>
+        </section>
+        
+      </section>
+
+      <section class="pitch" aria-label="Camp de futbol">
+        <div class="pitch-inner" style="position:relative;">
+          <img src="img/porteria.jpg" alt="Portería de fútbol" class="pitch-image" id="pitchImage" />
+          <div id="inlinePlay" class="inline-play hidden" aria-hidden="true">
+            <div class="inline-header">
+              <button id="closeInlinePlay" class="small">Tancar</button>
+              <span id="inlineModeLabel">Tria xut</span>
+            </div>
+
+            <div id="goalBox" class="goal-box" role="application" aria-label="Àrea de xut"></div>
           </div>
-
-          <!-- Goal box: aquí se insertarán las 9 zonas -->
-          <div id="goalBox" class="goal-box" role="application" aria-label="Àrea de xut"></div>
         </div>
-      </div>
-    </section>
+      </section>
 
+      <section class="rules">
+        <h2>REGLAMENT I PUNTUACIÓ</h2>
+        
+        <ol>
+          <li>Cada tirada consisteix en dos clics: el primer clic és per xutar (atacant) i el segon clic és per aturar (porter).</li>
+          <li>Si el porter no encerta ni l'alçada ni la direcció del xut contrari → 0 punts.</li>
+          <li>Si el porter encerta només l'alçada o la direcció → 1 punt.</li>
+          <li>Si el porter encerta tant l'alçada com la direcció → 2 punts.</li>
+        </ol>
+      </section>
 
-    <!-- Botons principals (a baix) -->
-    <section class="controls">
-      <button id="btnCreate">Crear partida</button>
-      <button id="btnJoin">Unir-me a partida</button>
-      <button id="btnPlay" disabled>Fer tirada</button>
-    </section>
+    </div> </main>
 
-    <!-- Info de partida -->
-    <section class="status">
-      <p id="statusText">Cap partida iniciada.</p>
-      <p id="gameInfo"></p>
-    </section>
-  </main>
-
-  <!-- Finestra flotant / modal -->
   <div id="modalOverlay" class="modal-overlay hidden">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h2 id="modalTitle"></h2>

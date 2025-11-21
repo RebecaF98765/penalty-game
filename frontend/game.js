@@ -45,15 +45,46 @@ function closeModal() {
 
 modalClose.addEventListener("click", () => closeModal());
 
+// Funció per copiar text (llegeix i escriu al portapapers)
+function copyGameId(id) {
+    // Utilitzem la Clipboard API, que és asíncrona i moderna
+    navigator.clipboard.writeText(id).then(() => {
+        // 🟢 CANVI CLAU: Substituïm l'alert per un missatge a la consola
+        console.log(`Codi de partida copiat amb èxit: ${id}`); 
+        
+        // OPCIONAL: Pots afegir una petita notificació visual (tipus toast) 
+        // si vols donar feedback a l'usuari sense utilitzar un alert.
+        
+    }).catch(err => {
+        // En cas d'error (per exemple, si el navegador bloqueja la Clipboard API)
+        console.error('Error copiant el text:', err);
+        alert(`La còpia automàtica ha fallat. Copia manualment: ${id}`); 
+    });
+}
+
+
 // Crear partida
 btnCreate.addEventListener("click", async () => {
     try {
         const res = await fetch(`${API_BASE}/create`, { method: "POST" });
         const data = await res.json();
-        gameId = data.gameId;
+        const newGameId = data.gameId;
+        gameId = newGameId;
+        
         statusText.textContent = "Partida creada. Ara uneix-te a la partida.";
-        gameInfo.textContent = `Codi de partida: ${gameId}`;
+        
+        // 🟢 Codi de partida + Botó de Còpia
+        gameInfo.innerHTML = `
+            Codi de partida: <strong>${newGameId}</strong> 
+            <button id="copyBtn" class="small">📋 Copiar</button>
+        `;
         btnPlay.disabled = true;
+
+        // Afegim l'esdeveniment de clic al nou botó
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            copyGameId(newGameId);
+        });
+
     } catch (err) {
         console.error(err);
         alert("Error creant partida");
@@ -66,7 +97,17 @@ btnJoin.addEventListener("click", () => {
         "Unir-me a una partida",
         `
     <label for="joinGameId">Introdueix el codi de partida:</label>
-    <input id="joinGameId" type="text" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid #4b5563;background:#020617;color:#f9fafb;margin-bottom:0.75rem;">
+    <input id="joinGameId" type="text" 
+    style="
+        width:100%;
+        padding:0.6rem 0.8rem;
+        border-radius:8px;
+        border:1px solid #94a3b8;
+        background:#ffffff; 
+        color:#0f172a;
+        margin-bottom:1rem;
+        font-size: 1rem;
+    ">
     <button id="joinConfirm">Unir-me</button>
   `
     );
@@ -92,7 +133,18 @@ btnJoin.addEventListener("click", () => {
             gameId = id;
             playerId = data.playerId;
             statusText.textContent = `Unió correcta a la partida. Ets ${playerId}.`;
-            gameInfo.textContent = `Codi de partida: ${gameId}`;
+            
+            // 🟢 Codi de partida + Botó de Còpia
+            gameInfo.innerHTML = `
+                Codi de partida: <strong>${gameId}</strong> 
+                <button id="copyBtn" class="small">📋 Copiar</button>
+            `;
+            
+            // Afegim l'esdeveniment de clic al nou botó
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                copyGameId(gameId);
+            });
+            
             btnPlay.disabled = false;
             closeModal();
         } catch (err) {

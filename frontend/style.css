@@ -5,8 +5,14 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0f172a;
-  color: #f9fafb;
+  /* Fons d'imatge amb cobertura total */
+  background: url('img/background.jpg') no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+  
+  color: #e2e8f0; /* Text clar */
   display: flex;
   min-height: 100vh;
   justify-content: center;
@@ -15,37 +21,49 @@ body {
 
 .app {
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
+  padding: 1rem;
 }
 
 h1 {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-top: 0.5rem; 
+  margin-bottom: 1.5rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* === GAME LAYOUT: DISSENY DE TRES COLUMNES (ESCRIPTORI) === */
+.game-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 /* === PITCH === */
 .pitch {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background: none;
   overflow: visible;
   padding: 0;
+  flex-shrink: 0;
+  max-width: 500px;
+  width: 100%;
 }
 
 .pitch-inner {
   position: relative;
-  display: inline-block;
+  display: block;
 }
 
 .pitch-image {
   display: block;
-  max-width: 100%;
-  height: 400px;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
   object-fit: contain;
 }
 
-/* === INLINE PLAY === */
+/* === INLINE PLAY (Contenidor de selecció del xut/aturada) === */
 .inline-play {
   position: absolute;
   inset: 0;
@@ -53,9 +71,11 @@ h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  pointer-events: none;
+  z-index: 10; 
+  pointer-events: none; 
 }
 
+/* Habilita la interacció quan és visible */
 .inline-play.visible {
   pointer-events: auto;
 }
@@ -76,15 +96,21 @@ h1 {
   font-size: 0.85rem;
 }
 
-/* === GOAL BOX === */
+#inlineModeLabel {
+  color: #0f172a; /* Text fosc */
+  font-weight: bold; 
+  background-color: rgba(255, 255, 255, 0.85); /* Fons clar per contrast */
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* === GOAL BOX (Zones de selecció) === */
 .goal-box {
   position: absolute;
-
   top: 27%;
   left: 21%;
   width: 58%;
   height: 35%;
-
   border: 2px dashed rgba(255,255,255,0.12);
   border-radius: 6px;
   box-shadow: 0 6px 18px rgba(2,6,23,0.6);
@@ -102,7 +128,8 @@ h1 {
 }
 
 .goal-zone:hover {
-  background: rgba(255, 255, 0, 0.18);
+  /* Groc amb opacitat augmentada */
+  background: rgba(255, 255, 0, 0.5); 
 }
 
 /* Posicionamiento de zonas */
@@ -118,15 +145,81 @@ h1 {
 .zone-bot-center { top: 66.6666%; left: 33.3333%; }
 .zone-bot-right { top: 66.6666%; left: 66.6666%; }
 
-/* === CONTROLES === */
+/* === CONTROLS (ESQUERRA) === */
 .controls {
-  margin-top: 1rem;
+  margin-top: 0;
   display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+  flex-basis: 200px;
+  flex-shrink: 1;
+  /* Fons semitransparent */
+  background: rgba(15, 23, 42, 0.75); 
+  padding: 1rem;
+  border-radius: 12px;
 }
 
+.controls h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+/* === STATUS (Dins de Controls) === */
+.status {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  text-align: left;
+  padding: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Estil per al botó de Còpia dins de l'estat */
+.status #copyBtn {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    margin-left: 0.5rem;
+    background: #64748b; /* Gris clar */
+    color: #f8fafc;
+    vertical-align: middle;
+}
+
+/* === RULES (DRETA) === */
+.rules {
+  flex-basis: 300px;
+  flex-shrink: 1;
+  /* Fons semitransparent */
+  background: rgba(30, 41, 59, 0.85); 
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+.rules h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Estil per a la llista numerada del reglament */
+.rules ol {
+  list-style: decimal; 
+  padding-left: 1.25rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rules li {
+  line-height: 1.5;
+  font-size: 0.95rem; 
+  padding-left: 0.25rem; 
+  position: relative;
+}
+
+/* === GENERALS === */
 button {
   padding: 0.5rem 1rem;
   border-radius: 9999px;
@@ -148,29 +241,72 @@ button:hover:not(:disabled) {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
 }
 
-.status {
-  margin-top: 0.5rem;
-  font-size: 0.95rem;
-  text-align: center;
+/* Amagar correctament l'element */
+.hidden {
+  display: none !important;
+}
+
+/* === DISPOSICIÓ PER A MÒBIL (Menys de 900px) === */
+@media (max-width: 900px) {
+  .game-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .rules {
+    order: 1; 
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .pitch {
+    order: 2;
+    max-width: 400px;
+  }
+  
+  .controls {
+    order: 3;
+    width: 100%;
+    max-width: 500px; 
+    flex-direction: column; 
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .controls h2 {
+    display: none;
+  }
+
+  .controls > button {
+    margin: 0 0.25rem;
+  }
+  
+  .controls {
+    text-align: center;
+  }
+
+  .status {
+    text-align: center;
+    padding: 0;
+    border-top: none;
+  }
 }
 
 /* === MODAL === */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(0, 0, 0, 0.7); 
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 20;
 }
 
-.hidden {
-  display: none;
-}
-
 .modal {
-  background: #020617;
+  background: #f0f4f8; 
+  color: #0f172a; 
   border-radius: 16px;
   padding: 1.5rem;
   max-width: 400px;
@@ -188,12 +324,25 @@ button:hover:not(:disabled) {
   margin-bottom: 0.5rem;
 }
 
+#joinConfirm {
+    display: block;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* Separació del botó Tancar */
+#modalClose {
+    margin-top: 1.5rem; 
+    display: block;
+    width: 100%;
+}
+
 .modal select {
   width: 100%;
   padding: 0.4rem;
   border-radius: 8px;
-  border: 1px solid #4b5563;
-  background: #020617;
-  color: #f9fafb;
+  border: 1px solid #94a3b8; 
+  background: #ffffff; 
+  color: #0f172a; 
   margin-bottom: 0.75rem;
 }

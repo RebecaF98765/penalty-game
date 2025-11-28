@@ -3,6 +3,8 @@ const API_BASE = "http://localhost:3000/game";
 let gameId = null;
 let playerId = null;
 let pollInterval = null;
+// 🟢 NOVA BANDERA: Per evitar múltiples clics durant la fase de defensa i processament
+let isPlayingTurn = false; 
 
 // Elements del DOM
 const statusText = document.getElementById("statusText");
@@ -109,7 +111,7 @@ btnJoin.addEventListener("click", () => {
         font-size: 1rem;
     ">
     <button id="joinConfirm">Unir-me</button>
-  `
+    `
     );
 
     document.getElementById("joinConfirm").addEventListener("click", async () => {
@@ -160,6 +162,8 @@ btnPlay.addEventListener("click", () => {
         alert("Primer has de crear o unir-te a una partida.");
         return;
     }
+    // 🟢 Assegurem que el flag estigui a false abans d'un nou torn
+    isPlayingTurn = false;
     openInlinePlay();
 });
 
@@ -178,8 +182,25 @@ function closeInlinePlayMode() {
     inlinePlay.classList.add("hidden");
     inlinePlay.classList.remove("visible");
     inlinePlay.setAttribute("aria-hidden", "true");
+    // 🟢 CRÍTIC: Esborrem els listeners i els elements
+    removeGoalZoneListeners();
     goalBox.querySelectorAll(".goal-zone")?.forEach(z => z.remove());
     imageOverlay.innerHTML = ""; // neteja imatges
+    isPlayingTurn = false; // Assegurar el reset del flag
+}
+
+/**
+ * 🟢 NOVA FUNCIÓ AUXILIAR
+ * Elimina tots els listeners de les zones de la porteria.
+ * És necessària per evitar que els clics de 'defend' (parada) es multipliquin.
+ */
+function removeGoalZoneListeners() {
+    const goalZones = goalBox.querySelectorAll(".goal-zone");
+    goalZones.forEach(zone => {
+        // La clonació elimina tots els listeners
+        const newZone = zone.cloneNode(true);
+        zone.parentNode.replaceChild(newZone, zone);
+    });
 }
 
 // Funció per afegir imatge amb offset
@@ -197,6 +218,8 @@ function addImageToOverlay(src, x, y, offsetX = 0, offsetY = 0) {
 
 // Render zones
 function renderGoalZones(mode, prevShoot) {
+    // 🟢 CRÍTIC: ELIMINEM ELS LISTENERS ANTERIORS abans de redibuixar
+    removeGoalZoneListeners();
     goalBox.querySelectorAll(".goal-zone")?.forEach(z => z.remove());
 
     const zones = [
@@ -218,21 +241,35 @@ function renderGoalZones(mode, prevShoot) {
         div.dataset.d = z.d;
         goalBox.appendChild(div);
 
-        div.addEventListener("click", async () => {
+        // 🟢 Còpia de seguretat de la lògica de clic
+        const clickHandler = async () => {
+            // 🟢 CRÍTIC: EVITAR CLICS MÚLTIPLES DURANT EL PROCESSAMENT
+            if (isPlayingTurn) return;
+
             const rect = div.getBoundingClientRect();
             const parentRect = goalBox.getBoundingClientRect();
             const x = rect.left - parentRect.left + rect.width / 2;
             const y = rect.top - parentRect.top + rect.height / 2;
 
             if (mode === "shoot") {
+                // FASE SHOOT
                 addImageToOverlay("img/ball.png", x, y, -20, 0); // pilota
                 const shoot = { height: z.h, direction: z.d };
                 inlineModeLabel.textContent = "Tria la teva parada";
+                // L'eliminació dels listeners ja es fa a l'inici de renderGoalZones,
+                // però podem fer-ho aquí per més seguretat si no estiguéssim redibuixant:
+                // removeGoalZoneListeners(); 
                 renderGoalZones("defend", shoot);
             } else if (mode === "defend") {
+                // FASE DEFEND
+                isPlayingTurn = true; // Bloqueja altres clics
+
                 addImageToOverlay("img/gloves.png", x, y, 20, 0); // guants + offset
                 const defend = { height: z.h, direction: z.d };
                 const shoot = prevShoot;
+                
+                // 🟢 CRÍTIC: Eliminem els listeners IMMEDIATAMENT per evitar múltiples parades
+                removeGoalZoneListeners(); 
 
                 setTimeout(async () => {
                     try {
@@ -247,10 +284,14 @@ function renderGoalZones(mode, prevShoot) {
                     } catch (err) {
                         console.error(err);
                         alert("Error enviant la jugada");
+                    } finally {
+                        isPlayingTurn = false; // Allibera el flag després d'enviar/error
                     }
                 }, 1000);
             }
-        });
+        };
+
+        div.addEventListener("click", clickHandler);
     });
 }
 
@@ -288,7 +329,7 @@ function showResult(result) {
     <p>Punts porter Jugador 1: <strong>${p1}</strong></p>
     <p>Punts porter Jugador 2: <strong>${p2}</strong></p>
     <p>${textWinner}</p>
-  `
+    `
     );
 
     statusText.textContent = "Partida finalitzada.";

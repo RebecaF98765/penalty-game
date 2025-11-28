@@ -152,8 +152,7 @@ h1 {
   flex-direction: column;
   gap: 0.75rem;
   align-items: stretch;
-  flex-basis: 200px;
-  flex-shrink: 1;
+  flex: 1;
   /* Fons semitransparent */
   background: rgba(15, 23, 42, 0.75); 
   padding: 1rem;
@@ -188,8 +187,7 @@ h1 {
 
 /* === RULES (DRETA) === */
 .rules {
-  flex-basis: 300px;
-  flex-shrink: 1;
+  flex: 1;
   /* Fons semitransparent */
   background: rgba(30, 41, 59, 0.85); 
   padding: 1.25rem;

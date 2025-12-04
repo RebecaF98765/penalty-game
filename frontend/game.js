@@ -4,7 +4,9 @@ let gameId = null;
 let playerId = null;
 let pollInterval = null;
 // 🟢 NOVA BANDERA: Per evitar múltiples clics durant la fase de defensa i processament
-let isPlayingTurn = false; 
+let isPlayingTurn = false;
+// 🟢 NOVA BANDERA: Per gestionar la revanxa
+let rematchRequested = false; 
 
 // Elements del DOM
 const statusText = document.getElementById("statusText");
@@ -333,4 +335,9 @@ function showResult(result) {
     );
 
     statusText.textContent = "Partida finalitzada.";
+    
+    // 🟢 BLOQUEA NUEVAS TIRADAS: limpia estado y deshabilita botón
+    gameId = null;
+    playerId = null;
+    btnPlay.disabled = true;
 }

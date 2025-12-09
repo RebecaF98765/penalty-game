@@ -15,20 +15,20 @@ body {
   color: #e2e8f0; /* Text clar */
   display: flex;
   min-height: 100vh;
-  justify-content: center;
-  align-items: center;
+  justify-content: center; 
+  align-items: flex-start;
 }
 
 .app {
   width: 100%;
   max-width: 1200px;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 h1 {
   text-align: center;
-  margin-top: 0.5rem; 
-  margin-bottom: 1.5rem;
+  margin-top: 1rem; 
+  margin-bottom: 1rem;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
@@ -344,3 +344,4 @@ button:hover:not(:disabled) {
   color: #0f172a; 
   margin-bottom: 0.75rem;
 }
+
